@@ -41,7 +41,7 @@ func SmokeTest(c *status.Cluster, wait time.Duration) error {
 	if err := cp1.Command(
 		"kubectl",
 		"--kubeconfig=/etc/kubernetes/admin.conf",
-		"run", "nginx", "--image=nginx:1.15.9-alpine", "--image-pull-policy=IfNotPresent",
+		"create", "deployment", "nginx", "--image=nginx:1.15.9-alpine",
 	).RunWithEcho(); err != nil {
 		return err
 	}
