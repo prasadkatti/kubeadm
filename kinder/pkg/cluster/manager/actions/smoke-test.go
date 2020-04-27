@@ -66,6 +66,9 @@ func SmokeTest(c *status.Cluster, wait time.Duration) error {
 		return err
 	}
 
+	// wait a few seconds for svc to be reachable
+	time.Sleep(3 * time.Second)
+
 	err = checkNodePort(c, nodePort)
 	if err != nil {
 		return err
