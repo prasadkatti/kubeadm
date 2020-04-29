@@ -51,7 +51,7 @@ func SmokeTest(c *status.Cluster, wait time.Duration) error {
 	}
 
 	// Test service type NodePort
-	cp1.Infof("service type NodePort")
+	cp1.Infof("test NodePort service")
 
 	if err := cp1.Command(
 		"kubectl",
@@ -66,10 +66,7 @@ func SmokeTest(c *status.Cluster, wait time.Duration) error {
 		return err
 	}
 
-	// wait a few seconds for svc to be reachable
-	time.Sleep(3 * time.Second)
-
-	err = checkNodePort(c, nodePort)
+	err = waitForNodePort(c, cp1, 30*time.Second, nodePort)
 	if err != nil {
 		return err
 	}
@@ -142,39 +139,6 @@ func getNodePort(n *status.Node, svc string) (string, error) {
 	}
 
 	return strings.Trim(lines[0], "'"), nil
-}
-
-func checkNodePort(c *status.Cluster, port string) error {
-	for _, n := range c.K8sNodes() {
-		fmt.Printf("checking node port %s on node %s...", port, n.Name())
-
-		//TODO: test IPV6
-		ip, _, err := n.IP()
-		if err != nil {
-			return err
-		}
-
-		lines, err := n.Command(
-			"curl", "-Is", fmt.Sprintf("http://%s:%s", ip, port),
-		).Silent().RunAndCapture()
-
-		if err != nil {
-			return errors.Wrapf(err, "error checking node port")
-		}
-
-		if len(lines) < 1 {
-			return errors.Wrapf(err, "error checking node port. invalid answer")
-		}
-
-		if strings.Trim(lines[0], "\n\r") == "HTTP/1.1 200 OK" {
-			fmt.Printf("pass!\n")
-			continue
-		}
-
-		return errors.Errorf("node port %s on node %s doesn't works", port, n.Name())
-	}
-
-	return nil
 }
 
 func getPodName(n *status.Node, label string) (string, error) {
